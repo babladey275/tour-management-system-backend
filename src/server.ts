@@ -2,7 +2,6 @@ import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
 import { envVars } from "./app/config/env";
-require("dotenv").config();
 
 let server: Server;
 
