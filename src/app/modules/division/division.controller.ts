@@ -14,7 +14,7 @@ const createDivision = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const gerAllDivisions = catchAsync(async (req: Request, res: Response) => {
+const getAllDivisions = catchAsync(async (req: Request, res: Response) => {
   const result = await DivisionService.getAllDivisions();
   sendResponse(res, {
     statusCode: 200,
@@ -64,7 +64,7 @@ const deleteDivision = catchAsync(async (req: Request, res: Response) => {
 
 export const DivisionController = {
   createDivision,
-  gerAllDivisions,
+  getAllDivisions,
   getSingleDivision,
   updateDivision,
   deleteDivision,

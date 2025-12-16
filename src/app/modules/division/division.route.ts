@@ -16,7 +16,7 @@ router.post(
   validateRequest(createDivisionSchema),
   DivisionController.createDivision
 );
-router.get("/", DivisionController.gerAllDivisions);
+router.get("/", DivisionController.getAllDivisions);
 router.get("/:slug", DivisionController.getSingleDivision);
 router.patch(
   "/:id",

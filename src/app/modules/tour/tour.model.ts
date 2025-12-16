@@ -7,6 +7,7 @@ const tourTypeSchema = new Schema<ITourType>(
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
 
@@ -15,7 +16,7 @@ export const TourType = model<ITourType>("TourType", tourTypeSchema);
 const tourSchema = new Schema<ITour>(
   {
     title: { type: String, required: true },
-    slug: { type: String, required: true, unique: true },
+    slug: { type: String, unique: true },
     description: { type: String },
     images: { type: [String], default: [] },
     location: { type: String },
@@ -41,7 +42,45 @@ const tourSchema = new Schema<ITour>(
   },
   {
     timestamps: true,
+    versionKey: false,
   }
 );
+
+// Pre-save
+tourSchema.pre("save", async function () {
+  if (!this.isModified("title")) return;
+
+  const baseSlug = this.title.toLowerCase().trim().replace(/\s+/g, "-");
+  let slug = baseSlug;
+  let counter = 0;
+
+  while (
+    await (this.constructor as any).exists({ slug, _id: { $ne: this._id } })
+  ) {
+    counter++;
+    slug = `${baseSlug}-${counter}`;
+  }
+
+  this.slug = slug;
+});
+
+// Pre-findOneAndUpdate
+tourSchema.pre("findOneAndUpdate", async function () {
+  const update = this.getUpdate() as Partial<ITour>;
+  if (!update?.title) return;
+
+  const baseSlug = update.title.toLowerCase().trim().replace(/\s+/g, "-");
+  let slug = baseSlug;
+  let counter = 0;
+
+  const query = this.getQuery() as { _id?: string };
+  while (await this.model.exists({ slug, _id: { $ne: query._id } })) {
+    counter++;
+    slug = `${baseSlug}-${counter}`;
+  }
+
+  update.slug = slug;
+  this.setUpdate(update);
+});
 
 export const Tour = model<ITour>("Tour", tourSchema);

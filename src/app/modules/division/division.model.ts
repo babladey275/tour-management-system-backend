@@ -36,7 +36,6 @@ divisionSchema.pre("save", async function (next) {
   this.slug = slug;
 });
 
-
 // Pre-update middleware hook (findOneAndUpdate)
 
 divisionSchema.pre("findOneAndUpdate", async function () {
@@ -61,6 +60,5 @@ divisionSchema.pre("findOneAndUpdate", async function () {
   update.slug = slug;
   this.setUpdate(update);
 });
-
 
 export const Division = model<IDivision>("Division", divisionSchema);
