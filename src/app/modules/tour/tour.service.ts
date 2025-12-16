@@ -1,3 +1,4 @@
+import { excludeField } from "../../constant";
 import { tourSearchableFields } from "./tour.constant";
 import { ITour, ITourType } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
@@ -24,7 +25,28 @@ const createTour = async (payload: ITour) => {
 };
 
 const getAllTours = async (query: Record<string, string>) => {
-  const searchTerm = query.searchTerm || "";
+  const {
+    searchTerm,
+    sort = "-createdAt",
+    fields,
+    page = 1,
+    limit = 10,
+  } = query;
+  const pageNumber = Number(page);
+  const limitNumber = Number(limit);
+  const skip = (pageNumber - 1) * limitNumber;
+
+  const filter = { ...query };
+
+  // Exclude fields that should not be part of the filter
+  for (const field of excludeField) {
+    delete filter[field];
+  }
+
+  // Field selection
+  const selectFields = fields ? fields.split(",").join(" ") : "";
+
+  // Search query
   let searchQuery = {};
 
   if (searchTerm) {
@@ -35,14 +57,27 @@ const getAllTours = async (query: Record<string, string>) => {
     };
   }
 
-  const tours = await Tour.find(searchQuery);
+  const finalQuery = { ...filter, ...searchQuery };
 
-  const totalTours = await Tour.countDocuments();
+  const tours = await Tour.find(finalQuery)
+    .sort(sort)
+    .select(selectFields)
+    .skip(skip)
+    .limit(limitNumber);
+
+  const totalTours = await Tour.countDocuments(finalQuery);
+
+  const totalPage = Math.ceil(totalTours / limitNumber);
+
+  const meta = {
+    page: pageNumber,
+    limit: limitNumber,
+    total: totalTours,
+    totalPage,
+  };
   return {
     data: tours,
-    meta: {
-      total: totalTours,
-    },
+    meta,
   };
 };
 
