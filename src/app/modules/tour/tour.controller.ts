@@ -14,7 +14,8 @@ const createTour = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllTours = catchAsync(async (req: Request, res: Response) => {
-  const result = await TourService.getAllTours();
+  const query = req.query;
+  const result = await TourService.getAllTours(query as Record<string, string>);
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -56,7 +57,6 @@ const getAllTourTypes = catchAsync(async (req: Request, res: Response) => {
 });
 
 const createTourType = catchAsync(async (req: Request, res: Response) => {
-  console.log("create type controller", req.body);
   const result = await TourService.createTourType(req.body);
   sendResponse(res, {
     statusCode: 201,

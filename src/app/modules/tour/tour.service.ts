@@ -1,3 +1,4 @@
+import { tourSearchableFields } from "./tour.constant";
 import { ITour, ITourType } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
 
@@ -22,8 +23,20 @@ const createTour = async (payload: ITour) => {
   return tour;
 };
 
-const getAllTours = async () => {
-  const tours = await Tour.find({});
+const getAllTours = async (query: Record<string, string>) => {
+  const searchTerm = query.searchTerm || "";
+  let searchQuery = {};
+
+  if (searchTerm) {
+    searchQuery = {
+      $or: tourSearchableFields.map((field) => ({
+        [field]: { $regex: searchTerm, $options: "i" },
+      })),
+    };
+  }
+
+  const tours = await Tour.find(searchQuery);
+
   const totalTours = await Tour.countDocuments();
   return {
     data: tours,
@@ -67,8 +80,6 @@ const createTourType = async (payload: ITourType) => {
   if (existingTourType) {
     throw new Error("Tour type already exists.");
   }
-
-  console.log("create tour type", payload)
 
   return await TourType.create(payload);
 };
