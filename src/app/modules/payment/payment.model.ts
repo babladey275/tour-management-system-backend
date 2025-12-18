@@ -14,6 +14,9 @@ const paymentSchema = new Schema<IPayment>(
       required: true,
       unique: true,
     },
+    amount: {
+      type: Number,
+    },
     status: {
       type: String,
       enum: Object.values(PAYMENT_STATUS),
@@ -32,4 +35,4 @@ const paymentSchema = new Schema<IPayment>(
   }
 );
 
-export const Payment = model<IPayment>("Payment", paymentSchema)
+export const Payment = model<IPayment>("Payment", paymentSchema);
