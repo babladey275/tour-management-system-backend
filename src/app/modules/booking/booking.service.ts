@@ -9,6 +9,7 @@ import { Payment } from "../payment/payment.model";
 import { Tour } from "../tour/tour.model";
 import { ISSLCommerz } from "../sslCommerz/sslCommerz.interface";
 import { SSLService } from "../sslCommerz/sslCommerz.service";
+import { QueryBuilder } from "../../utils/QueryBuilder";
 
 const getTransactionId = () => {
   return `tran_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
@@ -93,8 +94,8 @@ const createBooking = async (payload: Partial<IBooking>, userId: string) => {
 
     return {
       paymentUrl: sslPayment.GatewayPageURL,
-      booking: updatedBooking
-    }
+      booking: updatedBooking,
+    };
   } catch (error) {
     await session.abortTransaction(); //rollback
     session.endSession();
@@ -102,20 +103,50 @@ const createBooking = async (payload: Partial<IBooking>, userId: string) => {
   }
 };
 
-const getUserBookings = async () => {
-  return {};
+const getUserBookings = async (userId: string) => {
+  const booking = await Booking.find({ user: userId });
+
+  return { data: booking };
 };
 
-const getBookingById = async () => {
-  return {};
+const getBookingById = async (id: string) => {
+  const booking = await Booking.findById(id);
+  return {
+    data: booking,
+  };
 };
 
-const updateBookingStatus = async () => {
-  return {};
+const updateBookingStatus = async (id: string, payload: Partial<IBooking>) => {
+  const existingBooking = await Booking.findById(id);
+
+  if (!existingBooking) {
+    throw new Error("Booking not found.");
+  }
+  const updatedBookingStatus = await Booking.findByIdAndUpdate(
+    id,
+    { status: payload.status },
+    { new: true }
+  );
+
+  return updatedBookingStatus;
 };
 
-const getAllBookings = async () => {
-  return {};
+const getAllBookings = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(Booking.find(), query);
+  const searchableFields = ["status"];
+  const bookingsQuery = queryBuilder
+    .search(searchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    bookingsQuery.build(),
+    queryBuilder.getMeta(),
+  ]);
+
+  return { data, meta };
 };
 
 export const BookingService = {
