@@ -22,6 +22,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieParser());
 app.use(express.json());
+// Parse URL-encoded form data
+// extended: true allows nested objects
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cors());
 
 app.use("/api/v1", router);
