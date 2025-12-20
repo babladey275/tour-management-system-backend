@@ -5,6 +5,7 @@ import httpStatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
+import { deleteImageFromCloudinary } from "../../config/cloudinary.config";
 
 const createUser = async (payload: Partial<IUser>) => {
   const { email, password, ...rest } = payload;
@@ -81,6 +82,10 @@ const updateUser = async (
     new: true,
     runValidators: true,
   }).select("-password");
+
+  if (payload.picture && isUserExist.picture) {
+    await deleteImageFromCloudinary(isUserExist.picture);
+  }
 
   return newUpdatedUser;
 };

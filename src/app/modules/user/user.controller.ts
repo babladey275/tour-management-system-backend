@@ -6,6 +6,7 @@ import { sendResponse } from "../../utils/sendResponse";
 import { verifyToken } from "../../utils/jwt";
 import { envVars } from "../../config/env";
 import { JwtPayload } from "jsonwebtoken";
+import { IUser } from "./user.interface";
 
 // const createUser = async (req: Request, res: Response, next: NextFunction) => {
 //   try {
@@ -22,7 +23,11 @@ import { JwtPayload } from "jsonwebtoken";
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const user = await UserServices.createUser(req.body);
+    const payload: IUser = {
+        ...req.body,
+        picture: req.file?.path,
+      };
+    const user = await UserServices.createUser(payload);
 
     // res.status(httpStatus.CREATED).json({
     //   message: "User Created Successfully",
@@ -48,7 +53,10 @@ const updateUser = catchAsync(
     // ) as JwtPayload;
 
     const verifiedToken = req.user;
-    const payload = req.body;
+    const payload: IUser = {
+        ...req.body,
+        picture: req.file?.path,
+      };
 
     const user = await UserServices.updateUser(userId, payload, verifiedToken as JwtPayload);
 
