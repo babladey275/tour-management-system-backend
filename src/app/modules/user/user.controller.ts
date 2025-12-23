@@ -24,9 +24,9 @@ import { IUser } from "./user.interface";
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const payload: IUser = {
-        ...req.body,
-        picture: req.file?.path,
-      };
+      ...req.body,
+      picture: req.file?.path,
+    };
     const user = await UserServices.createUser(payload);
 
     // res.status(httpStatus.CREATED).json({
@@ -54,11 +54,15 @@ const updateUser = catchAsync(
 
     const verifiedToken = req.user;
     const payload: IUser = {
-        ...req.body,
-        picture: req.file?.path,
-      };
+      ...req.body,
+      picture: req.file?.path,
+    };
 
-    const user = await UserServices.updateUser(userId, payload, verifiedToken as JwtPayload);
+    const user = await UserServices.updateUser(
+      userId,
+      payload,
+      verifiedToken as JwtPayload
+    );
 
     sendResponse(res, {
       success: true,
@@ -72,7 +76,9 @@ const updateUser = catchAsync(
 const getAllUsers = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const query = req.query;
-    const result = await UserServices.getAllUsers(query as Record<string, string>);
+    const result = await UserServices.getAllUsers(
+      query as Record<string, string>
+    );
 
     sendResponse(res, {
       success: true,
@@ -84,10 +90,39 @@ const getAllUsers = catchAsync(
   }
 );
 
+const getMe = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const result = await UserServices.getMe(decodedToken.userId);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "Your profile Retrieved Successfully",
+      data: result.data,
+    });
+  }
+);
+
+const getSingleUser = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const id = req.params.id;
+    const result = await UserServices.getSingleUser(id);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.CREATED,
+      message: "User Retrieved Successfully",
+      data: result.data,
+    });
+  }
+);
+
 export const UserControllers = {
   createUser,
   getAllUsers,
   updateUser,
+  getMe,
+  getSingleUser,
 };
 
 //route matching -> controller -> service -> model -> DB

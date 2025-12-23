@@ -102,18 +102,34 @@ const getAllUsers = async (query: Record<string, string>) => {
     .paginate();
 
   const [data, meta] = await Promise.all([
-        usersData.build(),
-        queryBuilder.getMeta()
-    ])
+    usersData.build(),
+    queryBuilder.getMeta(),
+  ]);
 
-    return {
-        data,
-        meta
-    }
+  return {
+    data,
+    meta,
+  };
+};
+
+const getMe = async (userId: string) => {
+  const user = await User.findById(userId).select("-password");
+  return {
+    data: user,
+  };
+};
+
+const getSingleUser = async (id: string) => {
+  const user = await User.findById(id).select("-password");
+  return {
+    data: user,
+  };
 };
 
 export const UserServices = {
   createUser,
   getAllUsers,
   updateUser,
+  getMe,
+  getSingleUser,
 };
