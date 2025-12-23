@@ -1,7 +1,6 @@
 import AppError from "../../errorHelpers/AppError";
 import { User } from "../user/user.model";
 import { BOOKING_STATUS, IBooking } from "./booking.interface";
-import crypto from "crypto";
 import httpStatus from "http-status-codes";
 import { Booking } from "./booking.model";
 import { PAYMENT_STATUS } from "../payment/payment.interface";
@@ -10,12 +9,7 @@ import { Tour } from "../tour/tour.model";
 import { ISSLCommerz } from "../sslCommerz/sslCommerz.interface";
 import { SSLService } from "../sslCommerz/sslCommerz.service";
 import { QueryBuilder } from "../../utils/QueryBuilder";
-
-const getTransactionId = () => {
-  return `tran_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-};
-
-// const getTransactionId = () => `tran_${crypto.randomUUID()}`;
+import { getTransactionId } from "../../utils/getTransactionId";
 
 const createBooking = async (payload: Partial<IBooking>, userId: string) => {
   const transactionId = getTransactionId();
