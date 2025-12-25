@@ -95,11 +95,26 @@ const changePassword = async (
 };
 
 const resetPassword = async (
-  oldPassword: string,
-  newPassword: string,
+  payload: Record<string, any>,
   decodedToken: JwtPayload
 ) => {
-  return {};
+  if (payload.id != decodedToken.userId) {
+    throw new AppError(401, "You can not reset your password");
+  }
+
+  const isUserExist = await User.findById(decodedToken.userId);
+  if (!isUserExist) {
+    throw new AppError(401, "User does not exist");
+  }
+
+  const hashedPassword = await bcryptjs.hash(
+    payload.newPassword,
+    Number(envVars.BCRYPT_SALT_ROUND)
+  );
+
+  isUserExist.password = hashedPassword;
+
+  await isUserExist.save();
 };
 
 const setPassword = async (userId: string, plainPassword: string) => {
@@ -141,26 +156,23 @@ const forgotPassword = async (email: string) => {
   const isUserExist = await User.findOne({ email });
 
   if (!isUserExist) {
-        throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
-      }
+    throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
+  }
 
-      if (!isUserExist.isVerified) {
-        throw new AppError(httpStatus.BAD_REQUEST, "User is not verified");
-      }
+  if (!isUserExist.isVerified) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User is not verified");
+  }
 
-      if (
-        isUserExist.status === AccountStatus.BLOCKED ||
-        isUserExist.status === AccountStatus.INACTIVE
-      ) {
-        throw new AppError(
-          httpStatus.BAD_REQUEST,
-          `User is ${isUserExist.status}`
-        );
-      }
+  if (
+    isUserExist.status === AccountStatus.BLOCKED ||
+    isUserExist.status === AccountStatus.INACTIVE
+  ) {
+    throw new AppError(httpStatus.BAD_REQUEST, `User is ${isUserExist.status}`);
+  }
 
-      if (isUserExist.isDeleted) {
-        throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
-      }
+  if (isUserExist.isDeleted) {
+    throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
+  }
 
   const jwtPayload = {
     userId: isUserExist._id,
@@ -183,10 +195,6 @@ const forgotPassword = async (email: string) => {
       resetUILink,
     },
   });
-
-  /**
-   * http://localhost:5173/reset-password?id=687f310c724151eb2fcf0c41&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdmMzEwYzcyNDE1MWViMmZjZjBjNDEiLCJlbWFpbCI6InNhbWluaXNyYXI2QGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzUzMTY2MTM3LCJleHAiOjE3NTMxNjY3Mzd9.LQgXBmyBpEPpAQyPjDNPL4m2xLF4XomfUPfoxeG0MKg
-   */
 };
 
 export const AuthServices = {
