@@ -25,6 +25,10 @@ router.post(
   checkAuth(...Object.values(Role)),
   AuthControllers.setPassword
 );
+router.post(
+  "/forgot-password",
+  AuthControllers.forgotPassword
+);
 
 router.get(
   "/google",

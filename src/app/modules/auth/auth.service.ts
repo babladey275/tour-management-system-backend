@@ -1,5 +1,5 @@
 import AppError from "../../errorHelpers/AppError";
-import { IAuthProvider, IUser } from "../user/user.interface";
+import { AccountStatus, IAuthProvider, IUser } from "../user/user.interface";
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
@@ -8,7 +8,8 @@ import {
   createUserTokens,
 } from "../../utils/userTokens";
 import { envVars } from "../../config/env";
-import { JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { sendEmail } from "../../utils/sendEmail";
 
 // const credentialsLogin = async (payload: Partial<IUser>) => {
 //   const { email, password } = payload;
@@ -123,23 +124,76 @@ const setPassword = async (userId: string, plainPassword: string) => {
     Number(envVars.BCRYPT_SALT_ROUND)
   );
 
-  const credentialProvider:IAuthProvider = {
+  const credentialProvider: IAuthProvider = {
     provider: "credentials",
-    providerId: user.email
-  }
+    providerId: user.email,
+  };
 
-  const auths: IAuthProvider[]=[...user.auths, credentialProvider]
+  const auths: IAuthProvider[] = [...user.auths, credentialProvider];
 
-  user.password =hashedPassword;
+  user.password = hashedPassword;
   user.auths = auths;
-  
-  await user.save()
+
+  await user.save();
+};
+
+const forgotPassword = async (email: string) => {
+  const isUserExist = await User.findOne({ email });
+
+  if (!isUserExist) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User does not exist");
+      }
+
+      if (!isUserExist.isVerified) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User is not verified");
+      }
+
+      if (
+        isUserExist.status === AccountStatus.BLOCKED ||
+        isUserExist.status === AccountStatus.INACTIVE
+      ) {
+        throw new AppError(
+          httpStatus.BAD_REQUEST,
+          `User is ${isUserExist.status}`
+        );
+      }
+
+      if (isUserExist.isDeleted) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User is deleted");
+      }
+
+  const jwtPayload = {
+    userId: isUserExist._id,
+    email: isUserExist.email,
+    role: isUserExist.role,
+  };
+
+  const resetToken = jwt.sign(jwtPayload, envVars.JWT_ACCESS_SECRET, {
+    expiresIn: "10m",
+  });
+
+  const resetUILink = `${envVars.FRONTEND_URL}/reset-password?id=${isUserExist._id}&token=${resetToken}`;
+
+  sendEmail({
+    to: isUserExist.email,
+    subject: "Password Reset",
+    templateName: "forgetPassword",
+    templateData: {
+      name: isUserExist.name,
+      resetUILink,
+    },
+  });
+
+  /**
+   * http://localhost:5173/reset-password?id=687f310c724151eb2fcf0c41&token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2ODdmMzEwYzcyNDE1MWViMmZjZjBjNDEiLCJlbWFpbCI6InNhbWluaXNyYXI2QGdtYWlsLmNvbSIsInJvbGUiOiJVU0VSIiwiaWF0IjoxNzUzMTY2MTM3LCJleHAiOjE3NTMxNjY3Mzd9.LQgXBmyBpEPpAQyPjDNPL4m2xLF4XomfUPfoxeG0MKg
+   */
 };
 
 export const AuthServices = {
   // credentialsLogin,
   getNewAccessToken,
   changePassword,
+  forgotPassword,
   resetPassword,
   setPassword,
 };

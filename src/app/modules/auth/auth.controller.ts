@@ -176,6 +176,21 @@ const setPassword = catchAsync(
   }
 );
 
+const forgotPassword = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+
+    await AuthServices.forgotPassword(email);
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpsStatus.OK,
+      message: "Email Sent Successfully",
+      data: null,
+    });
+  }
+);
+
 const googleCallback = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     let redirectTo = req.query.state ? (req.query.state as string) : "";
@@ -203,6 +218,7 @@ export const AuthControllers = {
   getNewAccessToken,
   logout,
   changePassword,
+  forgotPassword,
   resetPassword,
   setPassword,
   googleCallback,
