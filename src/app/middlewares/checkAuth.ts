@@ -28,6 +28,10 @@ export const checkAuth =
         throw new AppError(httpStatus.BAD_REQUEST, "User not found");
       }
 
+      if (!isUserExist.isVerified) {
+        throw new AppError(httpStatus.BAD_REQUEST, "User is not verified");
+      }
+
       if (
         isUserExist.status === AccountStatus.BLOCKED ||
         isUserExist.status === AccountStatus.INACTIVE
