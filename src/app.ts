@@ -26,7 +26,12 @@ app.use(express.json());
 // extended: true allows nested objects
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors());
+app.use(
+  cors({
+    origin: envVars.FRONTEND_URL,
+    credentials: true,
+  })
+);
 
 app.use("/api/v1", router);
 
