@@ -18,9 +18,15 @@ router.get(
 );
 
 router.get(
-    "/booking",
-    checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
-    StatsController.getBookingStats
+  "/booking",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  StatsController.getBookingStats
+);
+
+router.get(
+  "/payment",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  StatsController.getPaymentStats
 );
 
 export const StatsRoutes = router;
