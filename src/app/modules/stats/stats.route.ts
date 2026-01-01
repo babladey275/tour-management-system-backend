@@ -11,4 +11,10 @@ router.get(
   StatsController.getUserStats
 );
 
+router.get(
+  "/tour",
+  checkAuth(Role.ADMIN, Role.SUPER_ADMIN),
+  StatsController.getTourStats
+);
+
 export const StatsRoutes = router;
