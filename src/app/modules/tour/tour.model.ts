@@ -57,6 +57,7 @@ tourSchema.pre("save", async function () {
   let counter = 0;
 
   while (
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (this.constructor as any).exists({ slug, _id: { $ne: this._id } })
   ) {
     counter++;

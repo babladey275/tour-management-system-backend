@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Query } from "mongoose";
 import { excludeField } from "../constants";
 
@@ -15,13 +16,29 @@ export class QueryBuilder<T> {
     this.query = query;
   }
 
+  private coerceValue(value: string): string | number | boolean {
+    const v = value.trim();
+
+    if (v === "true") return true;
+    if (v === "false") return false;
+
+    const n = Number(v);
+    if (!Number.isNaN(n) && v !== "") return n;
+
+    return value;
+  }
+
   filter(): this {
-    const filter: Record<string, any> = { ...this.query };
+    const filter: Record<string, any> = {};
 
-    for (const field of excludeField) delete filter[field];
+    for (const [key, value] of Object.entries(this.query)) {
+      // skip excluded fields
+      if (excludeField.includes(key)) continue;
 
-    for (const k of Object.keys(filter)) {
-      if (filter[k] === undefined || filter[k] === "") delete filter[k];
+      // skip empty values
+      if (value === undefined || value === "") continue;
+
+      filter[key] = this.coerceValue(value);
     }
 
     this.filterQuery = { ...this.filterQuery, ...filter };
@@ -31,13 +48,26 @@ export class QueryBuilder<T> {
   search(searchableFields: string[]): this {
     const searchTerm = this.query.searchTerm;
 
+    // if (searchTerm) {
+    //   this.filterQuery = {
+    //     ...this.filterQuery,
+    //     $or: searchableFields.map((field) => ({
+    //       [field]: { $regex: searchTerm, $options: "i" },
+    //     })),
+    //   };
+    // }
+
     if (searchTerm) {
-      this.filterQuery = {
-        ...this.filterQuery,
-        $or: searchableFields.map((field) => ({
-          [field]: { $regex: searchTerm, $options: "i" },
-        })),
-      };
+      const orClause = searchableFields.map((field) => ({
+        [field]: { $regex: searchTerm, $options: "i" },
+      }));
+
+      // don't overwrite existing $or
+      if (Array.isArray(this.filterQuery.$or)) {
+        this.filterQuery.$or = [...this.filterQuery.$or, ...orClause];
+      } else {
+        this.filterQuery.$or = orClause;
+      }
     }
 
     return this;
@@ -58,8 +88,10 @@ export class QueryBuilder<T> {
   }
 
   fields(): this {
-    const fields = this.query.fields?.split(",").join(" ") || "";
-    this.modelQuery = this.modelQuery.select(fields);
+    if (this.query.fields) {
+      const fields = this.query.fields.split(",").join(" ");
+      this.modelQuery = this.modelQuery.select(fields);
+    }
     return this;
   }
 

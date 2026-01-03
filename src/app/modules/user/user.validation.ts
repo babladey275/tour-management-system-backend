@@ -16,7 +16,7 @@ export const createUserZodSchema = z.object({
     .regex(/\d/, {
       message: "Password must contain at least 1 number.",
     })
-    .regex(/[!@#$%^&*()[\]{}\-_=+<>?\/~]/, {
+    .regex(/[^A-Za-z0-9]/, {
       message: "Password must contain at least 1 special character.",
     }),
   phone: z
@@ -50,7 +50,9 @@ export const updateUserZodSchema = z.object({
   isDeleted: z
     .boolean({ message: "isDeleted must be true or false" })
     .optional(),
-  isVerified: z.boolean({ message: "isVerified must be true or false" }).optional(),
+  isVerified: z
+    .boolean({ message: "isVerified must be true or false" })
+    .optional(),
   address: z
     .string({ message: "Address must be a string" })
     .max(200, { message: "Address cannot exceed 200 characters." })

@@ -22,6 +22,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(cookieParser());
 app.use(express.json());
+app.set("trust proxy", 1);
 // Parse URL-encoded form data
 // extended: true allows nested objects
 app.use(express.urlencoded({ extended: true }));

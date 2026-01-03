@@ -99,6 +99,7 @@ export const generatePdf = async (
 
       doc.end();
     });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error(error);
     throw new AppError(500, `PDF creation failed: ${error.message}`);

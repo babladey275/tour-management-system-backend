@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import AppError from "../../errorHelpers/AppError";
-import { AccountStatus, IAuthProvider, IUser } from "../user/user.interface";
+import { AccountStatus, IAuthProvider } from "../user/user.interface";
 import { User } from "../user/user.model";
 import httpStatus from "http-status-codes";
 import bcryptjs from "bcryptjs";
 import {
   createNewAccessTokenWithRefreshToken,
-  createUserTokens,
 } from "../../utils/userTokens";
 import { envVars } from "../../config/env";
 import jwt, { JwtPayload } from "jsonwebtoken";

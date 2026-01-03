@@ -24,7 +24,7 @@ const storage = new CloudinaryStorage({
     const fileName = originalNameWithoutExt
       .replace(/\s+/g, "-")
       .replace(/\./g, "-")
-      .replace(/[^a-z0-9\-]/g, "");
+      .replace(/[^a-z0-9-]/g, "");
 
     const safeName = fileName || "file";
 
