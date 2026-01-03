@@ -280,6 +280,7 @@ const getBookingStats = async () => {
   });
 
   const totalBookingByUniqueUsersPromise = Booking.distinct("user").then(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (user: any) => user.length
   );
 
