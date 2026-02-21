@@ -20,9 +20,6 @@ app.use(
   })
 );
 
-// Explicit preflight handling
-app.options("*", cors());
-
 app.use(express.json());
 // Parse URL-encoded form data
 // extended: true allows nested objects

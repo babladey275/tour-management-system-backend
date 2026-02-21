@@ -1,6 +1,9 @@
 import { deleteImageFromCloudinary } from "../../config/cloudinary.config";
 import { QueryBuilder } from "../../utils/QueryBuilder";
-import { tourSearchableFields } from "./tour.constant";
+import {
+  tourSearchableFields,
+  tourTypeSearchableFields,
+} from "./tour.constant";
 import { ITour, ITourType } from "./tour.interface";
 import { Tour, TourType } from "./tour.model";
 
@@ -147,9 +150,16 @@ const updateTour = async (id: string, payload: Partial<ITour>) => {
 
   const updatedTour = await Tour.findByIdAndUpdate(id, payload, { new: true });
 
-  if (payload.deleteImages && payload.deleteImages.length > 0 && existingTour.images && existingTour.images.length > 0) {
-        await Promise.all(payload.deleteImages.map(url => deleteImageFromCloudinary(url)))
-    }
+  if (
+    payload.deleteImages &&
+    payload.deleteImages.length > 0 &&
+    existingTour.images &&
+    existingTour.images.length > 0
+  ) {
+    await Promise.all(
+      payload.deleteImages.map((url) => deleteImageFromCloudinary(url))
+    );
+  }
 
   return updatedTour;
 };
@@ -168,8 +178,25 @@ const createTourType = async (payload: ITourType) => {
   return await TourType.create(payload);
 };
 
-const getAllTourTypes = async () => {
-  return await TourType.find();
+const getAllTourTypes = async (query: Record<string, string>) => {
+  const queryBuilder = new QueryBuilder(TourType.find(), query);
+
+  const tourTypes = queryBuilder
+    .search(tourTypeSearchableFields)
+    .filter()
+    .sort()
+    .fields()
+    .paginate();
+
+  const [data, meta] = await Promise.all([
+    tourTypes.build(),
+    queryBuilder.getMeta(),
+  ]);
+
+  return {
+    data,
+    meta,
+  };
 };
 
 const updateTourType = async (id: string, payload: ITourType) => {
